@@ -105,6 +105,7 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
   let relationshipArray = resContent['Relationships']['Relationship']
   let layoutFilename = ''
   let diagramFilename = ''
+  let notesFilename = ''
   const slideResObj = {}
 
   if (relationshipArray.constructor === Array) {
@@ -121,6 +122,8 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
           }
           break
         case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide':
+          notesFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+          break
         case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image':
         case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart':
         case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink':
@@ -133,6 +136,9 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
     }
   } 
   else layoutFilename = relationshipArray['attrs']['Target'].replace('../', 'ppt/')
+  
+  const slideNotesContent = await readXmlFile(zip, notesFilename)
+  const note = getNote(slideNotesContent)
 
   const slideLayoutContent = await readXmlFile(zip, layoutFilename)
   const slideLayoutTables = await indexNodes(slideLayoutContent)
@@ -283,7 +289,27 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
   return {
     fill: bgColor,
     elements,
+    note,
   }
+}
+
+function getNote(noteContent) {
+  let text = ''
+  let spNodes = getTextByPathList(noteContent, ['p:notes', 'p:cSld', 'p:spTree', 'p:sp'])
+  if (!spNodes) return ''
+
+  if (spNodes.constructor !== Array) spNodes = [spNodes]
+  for (const spNode of spNodes) {
+    let rNodes = getTextByPathList(spNode, ['p:txBody', 'a:p', 'a:r'])
+    if (!rNodes) continue
+
+    if (rNodes.constructor !== Array) rNodes = [rNodes]
+    for (const rNode of rNodes) {
+      const t = getTextByPathList(rNode, ['a:t'])
+      if (t) text += t
+    }
+  }
+  return text
 }
 
 // async function getBackground(warpObj) {
