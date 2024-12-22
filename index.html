@@ -4,8 +4,8 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="基于JavaScript的 .pptx 文件解析工具丨A javascript tool for parsing .pptx file" />
-	<meta name="keywords" content="ppt,powerpoint,office powerpoint,json,javascript,PPT解析,PPT转JSON" />
+	<meta name="description" content="Office PowerPoint(.pptx) file to JSON | 将 PPTX 文件转为可读的 JSON 数据" />
+	<meta name="keywords" content="pptx2json,pptxtojson,ppt,powerpoint,json,javascript,PPT解析,PPT转JSON" />
 	<link rel="icon" href="favicon.ico">
 	<title>pptxtojson - PPTX转JSON</title>	
 
@@ -80,6 +80,13 @@
 		.upload-input {
 			display: none;
 		}
+		.link {
+			display: flex;
+		}
+		.link a {
+			padding: 5px 10px;
+			color: #d14424;
+		}
 	</style>
 </head>
 
@@ -90,7 +97,10 @@
 			<input class="upload-input" type="file" accept="application/vnd.openxmlformats-officedocument.presentationml.presentation"/>
 		</div>
 
-		<a href="https://github.com/pipipi-pikachu/pptx2json">Github</a>
+		<div class="link">
+			<a target="_blank" href="https://github.com/pipipi-pikachu/pptx2json">Github仓库</a>
+			<a target="_blank" href="https://pipipi-pikachu.github.io/PPTist/">可视化测试</a>
+		</div>
 	</div>
 	<div id="jsoneditor"></div>
 	

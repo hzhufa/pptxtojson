@@ -11,6 +11,7 @@ import { extractFileExtension, base64ArrayBuffer, getTextByPathList, angleToDegr
 import { getShadow } from './shadow'
 import { getTableBorders, getTableCellParams, getTableRowParams } from './table'
 import { RATIO_EMUs_Points } from './constants'
+import { findOMath, latexFormart, parseOMath } from './math'
 
 export async function parse(file) {
   const slides = []
@@ -416,12 +417,35 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
       json = await processGroupSpNode(nodeValue, warpObj, source)
       break
     case 'mc:AlternateContent':
-      json = await processGroupSpNode(getTextByPathList(nodeValue, ['mc:Fallback']), warpObj, source)
+      if (getTextByPathList(nodeValue, ['mc:Fallback', 'p:grpSpPr', 'a:xfrm'])) {
+        json = await processGroupSpNode(getTextByPathList(nodeValue, ['mc:Fallback']), warpObj, source)
+      }
+      else if (getTextByPathList(nodeValue, ['mc:Choice'])) {
+        json = await processMathNode(getTextByPathList(nodeValue, ['mc:Choice']))
+      }
       break
     default:
   }
 
   return json
+}
+
+function processMathNode(node) {
+  const xfrmNode = getTextByPathList(node, ['p:sp', 'p:spPr', 'a:xfrm'])
+  const { top, left } = getPosition(xfrmNode, undefined, undefined)
+  const { width, height } = getSize(xfrmNode, undefined, undefined)
+
+  const oMath = findOMath(node)[0]
+  const latex = latexFormart(parseOMath(oMath))
+
+  return {
+    type: 'math',
+    top,
+    left,
+    width, 
+    height,
+    latex,
+  }
 }
 
 async function processGroupSpNode(node, warpObj, source) {

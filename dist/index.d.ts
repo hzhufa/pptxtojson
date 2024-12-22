@@ -164,7 +164,16 @@ export interface Diagram {
   elements: (Shape | Text)[]
 }
 
-export type BaseElement = Shape | Text | Image | Table | Chart | Video | Audio | Diagram
+export interface Math {
+  type: 'math'
+  left: number
+  top: number
+  width: number
+  height: number
+  latex: string
+}
+
+export type BaseElement = Shape | Text | Image | Table | Chart | Video | Audio | Diagram | Math
 
 export interface Group {
   type: 'group'
