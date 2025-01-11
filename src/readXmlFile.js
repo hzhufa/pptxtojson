@@ -19,11 +19,15 @@ export function simplifyLostLess(children, parentAttributes = {}) {
     if (!out[child.tagName]) out[child.tagName] = []
 
     const kids = simplifyLostLess(child.children || [], child.attributes)
-    out[child.tagName].push(kids)
-
-    if (Object.keys(child.attributes).length) {
-      kids.attrs = { order: cust_attr_order++, ...child.attributes }
+    
+    if (typeof kids === 'object') {
+      if (!kids.attrs) kids.attrs = { order: cust_attr_order++ }
+      else kids.attrs.order = cust_attr_order++
     }
+    if (Object.keys(child.attributes || {}).length) {
+      kids.attrs = { ...kids.attrs, ...child.attributes }
+    }
+    out[child.tagName].push(kids)
   }
   for (const child in out) {
     if (out[child].length === 1) out[child] = out[child][0]

@@ -7,7 +7,7 @@ import { getVerticalAlign } from './align'
 import { getPosition, getSize } from './position'
 import { genTextBody } from './text'
 import { getCustomShapePath } from './shape'
-import { extractFileExtension, base64ArrayBuffer, getTextByPathList, angleToDegrees, getMimeType, isVideoLink, escapeHtml } from './utils'
+import { extractFileExtension, base64ArrayBuffer, getTextByPathList, angleToDegrees, getMimeType, isVideoLink, escapeHtml, hasValidText } from './utils'
 import { getShadow } from './shadow'
 import { getTableBorders, getTableCellParams, getTableRowParams } from './table'
 import { RATIO_EMUs_Points } from './constants'
@@ -431,6 +431,7 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
 }
 
 function processMathNode(node) {
+  const order = node['attrs']['order']
   const xfrmNode = getTextByPathList(node, ['p:sp', 'p:spPr', 'a:xfrm'])
   const { top, left } = getPosition(xfrmNode, undefined, undefined)
   const { width, height } = getSize(xfrmNode, undefined, undefined)
@@ -445,10 +446,12 @@ function processMathNode(node) {
     width, 
     height,
     latex,
+    order,
   }
 }
 
 async function processGroupSpNode(node, warpObj, source) {
+  const order = node['attrs']['order']
   const xfrmNode = getTextByPathList(node, ['p:grpSpPr', 'a:xfrm'])
   if (!xfrmNode) return null
 
@@ -488,6 +491,7 @@ async function processGroupSpNode(node, warpObj, source) {
     width: cx,
     height: cy,
     rotate,
+    order,
     elements: elements.map(element => ({
       ...element,
       left: (element.left - chx) * ws,
@@ -502,6 +506,7 @@ function processSpNode(node, warpObj, source) {
   const name = getTextByPathList(node, ['p:nvSpPr', 'p:cNvPr', 'attrs', 'name'])
   const idx = getTextByPathList(node, ['p:nvSpPr', 'p:nvPr', 'p:ph', 'attrs', 'idx'])
   let type = getTextByPathList(node, ['p:nvSpPr', 'p:nvPr', 'p:ph', 'attrs', 'type'])
+  const order = getTextByPathList(node, ['attrs', 'order'])
 
   let slideLayoutSpNode, slideMasterSpNode
 
@@ -532,17 +537,18 @@ function processSpNode(node, warpObj, source) {
     else type = 'obj'
   }
 
-  return genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, warpObj)
+  return genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order, warpObj)
 }
 
 function processCxnSpNode(node, warpObj) {
   const name = node['p:nvCxnSpPr']['p:cNvPr']['attrs']['name']
   const type = (node['p:nvCxnSpPr']['p:nvPr']['p:ph'] === undefined) ? undefined : node['p:nvSpPr']['p:nvPr']['p:ph']['attrs']['type']
+  const order = node['attrs']['order']
 
-  return genShape(node, undefined, undefined, name, type, warpObj)
+  return genShape(node, undefined, undefined, name, type, order, warpObj)
 }
 
-function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, warpObj) {
+function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order, warpObj) {
   const xfrmList = ['p:spPr', 'a:xfrm']
   const slideXfrmNode = getTextByPathList(node, xfrmList)
   const slideLayoutXfrmNode = getTextByPathList(slideLayoutSpNode, xfrmList)
@@ -568,7 +574,10 @@ function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, warpOb
   else txtRotate = rotate
 
   let content = ''
-  if (node['p:txBody']) content = genTextBody(node['p:txBody'], node, slideLayoutSpNode, type, warpObj)
+  if (node['p:txBody']) {
+    content = genTextBody(node['p:txBody'], node, slideLayoutSpNode, type, warpObj)
+    if (!hasValidText(content)) content = ''
+  }
 
   const { borderColor, borderWidth, borderType, strokeDasharray } = getBorder(node, type, warpObj)
   const fillColor = getShapeFill(node, undefined, warpObj) || ''
@@ -596,6 +605,7 @@ function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, warpOb
     rotate,
     vAlign,
     name,
+    order,
   }
 
   if (shadow) data.shadow = shadow
@@ -633,6 +643,8 @@ async function processPicNode(node, warpObj, source) {
   if (source === 'slideMasterBg') resObj = warpObj['masterResObj']
   else if (source === 'slideLayoutBg') resObj = warpObj['layoutResObj']
   else resObj = warpObj['slideResObj']
+
+  const order = node['attrs']['order']
   
   const rid = node['p:blipFill']['a:blip']['attrs']['r:embed']
   const imgName = resObj[rid]['target']
@@ -697,6 +709,7 @@ async function processPicNode(node, warpObj, source) {
       height,
       rotate,
       blob: videoBlob,
+      order,
     }
   } 
   if (videoNode && isVdeoLink) {
@@ -708,6 +721,7 @@ async function processPicNode(node, warpObj, source) {
       height,
       rotate,
       src: videoFile,
+      order,
     }
   }
   if (audioNode) {
@@ -719,6 +733,7 @@ async function processPicNode(node, warpObj, source) {
       height,
       rotate,
       blob: audioBlob,
+      order,
     }
   }
   return {
@@ -730,7 +745,8 @@ async function processPicNode(node, warpObj, source) {
     rotate,
     src,
     isFlipV,
-    isFlipH
+    isFlipH,
+    order,
   }
 }
 
@@ -759,6 +775,7 @@ async function processGraphicFrameNode(node, warpObj, source) {
 }
 
 function genTable(node, warpObj) {
+  const order = node['attrs']['order']
   const tableNode = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'a:tbl'])
   const xfrmNode = getTextByPathList(node, ['p:xfrm'])
   const { top, left } = getPosition(xfrmNode, undefined, undefined)
@@ -928,11 +945,13 @@ function genTable(node, warpObj) {
     width,
     height,
     data,
+    order,
     ...(tbl_border || {}),
   }
 }
 
 async function genChart(node, warpObj) {
+  const order = node['attrs']['order']
   const xfrmNode = getTextByPathList(node, ['p:xfrm'])
   const { top, left } = getPosition(xfrmNode, undefined, undefined)
   const { width, height } = getSize(xfrmNode, undefined, undefined)
@@ -954,6 +973,7 @@ async function genChart(node, warpObj) {
     height,
     data: chart.data,
     chartType: chart.type,
+    order,
   }
   if (chart.marker !== undefined) data.marker = chart.marker
   if (chart.barDir !== undefined) data.barDir = chart.barDir
@@ -965,6 +985,7 @@ async function genChart(node, warpObj) {
 }
 
 function genDiagram(node, warpObj) {
+  const order = node['attrs']['order']
   const xfrmNode = getTextByPathList(node, ['p:xfrm'])
   const { left, top } = getPosition(xfrmNode, undefined, undefined)
   const { width, height } = getSize(xfrmNode, undefined, undefined)
@@ -985,5 +1006,6 @@ function genDiagram(node, warpObj) {
     width,
     height,
     elements,
+    order,
   }
 }

@@ -151,3 +151,12 @@ export function toHex(n) {
   }
   return hex
 }
+
+export function hasValidText(htmlString) {
+  if (!DOMParser) return true
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(htmlString, 'text/html')
+  const text = doc.body.textContent || doc.body.innerText
+  return text.trim() !== ''
+}

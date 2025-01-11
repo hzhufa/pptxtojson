@@ -25,6 +25,7 @@ export interface Shape {
   vAlign: string
   path?: string
   name: string
+  order: number
 }
 
 export interface Text {
@@ -46,6 +47,7 @@ export interface Text {
   content: string
   vAlign: string
   name: string
+  order: number
 }
 
 export interface Image {
@@ -58,6 +60,7 @@ export interface Image {
   rotate: number
   isFlipH: boolean
   isFlipV: boolean
+  order: number
 }
 
 export interface TableCell {
@@ -80,6 +83,7 @@ export interface Table {
   borderColor: string
   borderWidth: number
   borderType: 'solid' | 'dashed' | 'dotted'
+  order: number
 }
 
 export type ChartType = 'lineChart' |
@@ -124,6 +128,7 @@ export interface CommonChart {
   holeSize?: string
   grouping?: string
   style?: string
+  order: number
 }
 export interface ScatterChart {
   type: 'chart'
@@ -133,6 +138,7 @@ export interface ScatterChart {
   height: number
   data: ScatterChartData,
   chartType: 'scatterChart' | 'bubbleChart'
+  order: number
 }
 export type Chart = CommonChart | ScatterChart
 
@@ -144,6 +150,7 @@ export interface Video {
   height: number
   blob?: string
   src?: string
+  order: number
 }
 
 export interface Audio {
@@ -153,6 +160,7 @@ export interface Audio {
   width: number
   height: number
   blob: string
+  order: number
 }
 
 export interface Diagram {
@@ -162,6 +170,7 @@ export interface Diagram {
   width: number
   height: number
   elements: (Shape | Text)[]
+  order: number
 }
 
 export interface Math {
@@ -171,6 +180,7 @@ export interface Math {
   width: number
   height: number
   latex: string
+  order: number
 }
 
 export type BaseElement = Shape | Text | Image | Table | Chart | Video | Audio | Diagram | Math
@@ -183,6 +193,7 @@ export interface Group {
   height: number
   rotate: number
   elements: BaseElement[]
+  order: number
 }
 export type Element = BaseElement | Group
 
