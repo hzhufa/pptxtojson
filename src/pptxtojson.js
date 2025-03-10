@@ -103,94 +103,89 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
   const resName = sldFileName.replace('slides/slide', 'slides/_rels/slide') + '.rels'
   const resContent = await readXmlFile(zip, resName)
   let relationshipArray = resContent['Relationships']['Relationship']
-  let layoutFilename = ''
-  let diagramFilename = ''
-  let notesFilename = ''
-  const slideResObj = {}
-
-  if (relationshipArray.constructor === Array) {
-    for (const relationshipArrayItem of relationshipArray) {
-      switch (relationshipArrayItem['attrs']['Type']) {
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout':
-          layoutFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-          break
-        case 'http://schemas.microsoft.com/office/2007/relationships/diagramDrawing':
-          diagramFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-          slideResObj[relationshipArrayItem['attrs']['Id']] = {
-            type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-            target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-          }
-          break
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide':
-          notesFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-          break
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image':
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart':
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink':
-        default:
-          slideResObj[relationshipArrayItem['attrs']['Id']] = {
-            type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-            target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/'),
-          }
-      }
-    }
-  } 
-  else layoutFilename = relationshipArray['attrs']['Target'].replace('../', 'ppt/')
+  if (relationshipArray.constructor !== Array) relationshipArray = [relationshipArray]
   
-  const slideNotesContent = await readXmlFile(zip, notesFilename)
+  let noteFilename = ''
+  let layoutFilename = ''
+  let masterFilename = ''
+  let themeFilename = ''
+  let diagramFilename = ''
+  const slideResObj = {}
+  const layoutResObj = {}
+  const masterResObj = {}
+  const themeResObj = {}
+  const diagramResObj = {}
+
+  for (const relationshipArrayItem of relationshipArray) {
+    switch (relationshipArrayItem['attrs']['Type']) {
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout':
+        layoutFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+        break
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide':
+        noteFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+        break
+      case 'http://schemas.microsoft.com/office/2007/relationships/diagramDrawing':
+        diagramFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+        slideResObj[relationshipArrayItem['attrs']['Id']] = {
+          type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
+          target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+        }
+        break
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image':
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart':
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink':
+      default:
+        slideResObj[relationshipArrayItem['attrs']['Id']] = {
+          type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
+          target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/'),
+        }
+    }
+  }
+  
+  const slideNotesContent = await readXmlFile(zip, noteFilename)
   const note = getNote(slideNotesContent)
 
   const slideLayoutContent = await readXmlFile(zip, layoutFilename)
   const slideLayoutTables = await indexNodes(slideLayoutContent)
-
   const slideLayoutResFilename = layoutFilename.replace('slideLayouts/slideLayout', 'slideLayouts/_rels/slideLayout') + '.rels'
   const slideLayoutResContent = await readXmlFile(zip, slideLayoutResFilename)
   relationshipArray = slideLayoutResContent['Relationships']['Relationship']
+  if (relationshipArray.constructor !== Array) relationshipArray = [relationshipArray]
 
-  let masterFilename = ''
-  const layoutResObj = {}
-  if (relationshipArray.constructor === Array) {
-    for (const relationshipArrayItem of relationshipArray) {
-      switch (relationshipArrayItem['attrs']['Type']) {
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster':
-          masterFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-          break
-        default:
-          layoutResObj[relationshipArrayItem['attrs']['Id']] = {
-            type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-            target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/'),
-          }
-      }
+  for (const relationshipArrayItem of relationshipArray) {
+    switch (relationshipArrayItem['attrs']['Type']) {
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster':
+        masterFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+        break
+      default:
+        layoutResObj[relationshipArrayItem['attrs']['Id']] = {
+          type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
+          target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/'),
+        }
     }
-  } 
-  else masterFilename = relationshipArray['attrs']['Target'].replace('../', 'ppt/')
+  }
 
   const slideMasterContent = await readXmlFile(zip, masterFilename)
   const slideMasterTextStyles = getTextByPathList(slideMasterContent, ['p:sldMaster', 'p:txStyles'])
   const slideMasterTables = indexNodes(slideMasterContent)
-
   const slideMasterResFilename = masterFilename.replace('slideMasters/slideMaster', 'slideMasters/_rels/slideMaster') + '.rels'
   const slideMasterResContent = await readXmlFile(zip, slideMasterResFilename)
   relationshipArray = slideMasterResContent['Relationships']['Relationship']
+  if (relationshipArray.constructor !== Array) relationshipArray = [relationshipArray]
 
-  let themeFilename = ''
-  const masterResObj = {}
-  if (relationshipArray.constructor === Array) {
-    for (const relationshipArrayItem of relationshipArray) {
-      switch (relationshipArrayItem['attrs']['Type']) {
-        case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme':
-          break
-        default:
-          masterResObj[relationshipArrayItem['attrs']['Id']] = {
-            type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-            target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/'),
-          }
-      }
+  for (const relationshipArrayItem of relationshipArray) {
+    switch (relationshipArrayItem['attrs']['Type']) {
+      case 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme':
+        themeFilename = relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
+        break
+      default:
+        masterResObj[relationshipArrayItem['attrs']['Id']] = {
+          type: relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
+          target: relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/'),
+        }
     }
   }
-  else themeFilename = relationshipArray['attrs']['Target'].replace('../', 'ppt/')
 
-  const themeResObj = {}
   if (themeFilename) {
     const themeName = themeFilename.split('/').pop()
     const themeResFileName = themeFilename.replace(themeName, '_rels/' + themeName) + '.rels'
@@ -198,50 +193,34 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
     if (themeResContent) {
       relationshipArray = themeResContent['Relationships']['Relationship']
       if (relationshipArray) {
-        if (relationshipArray.constructor === Array) {
-          for (const relationshipArrayItem of relationshipArray) {
-            themeResObj[relationshipArrayItem['attrs']['Id']] = {
-              'type': relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-              'target': relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-            }
-          }
-        } 
-        else {
-          themeResObj[relationshipArray['attrs']['Id']] = {
-            'type': relationshipArray['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-            'target': relationshipArray['attrs']['Target'].replace('../', 'ppt/')
+        if (relationshipArray.constructor !== Array) relationshipArray = [relationshipArray]
+        for (const relationshipArrayItem of relationshipArray) {
+          themeResObj[relationshipArrayItem['attrs']['Id']] = {
+            'type': relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
+            'target': relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
           }
         }
       }
     }
   }
 
-  const diagramResObj = {}
   let digramFileContent = {}
   if (diagramFilename) {
     const diagName = diagramFilename.split('/').pop()
     const diagramResFileName = diagramFilename.replace(diagName, '_rels/' + diagName) + '.rels'
     digramFileContent = await readXmlFile(zip, diagramFilename)
-    if (digramFileContent && digramFileContent && digramFileContent) {
-      let digramFileContentObjToStr = JSON.stringify(digramFileContent)
-      digramFileContentObjToStr = digramFileContentObjToStr.replace(/dsp:/g, 'p:')
+    if (digramFileContent) {
+      const digramFileContentObjToStr = JSON.stringify(digramFileContent).replace(/dsp:/g, 'p:')
       digramFileContent = JSON.parse(digramFileContentObjToStr)
     }
     const digramResContent = await readXmlFile(zip, diagramResFileName)
     if (digramResContent) {
       relationshipArray = digramResContent['Relationships']['Relationship']
-      if (relationshipArray.constructor === Array) {
-        for (const relationshipArrayItem of relationshipArray) {
-          diagramResObj[relationshipArrayItem['attrs']['Id']] = {
-            'type': relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-            'target': relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
-          }
-        }
-      } 
-      else {
-        diagramResObj[relationshipArray['attrs']['Id']] = {
-          'type': relationshipArray['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
-          'target': relationshipArray['attrs']['Target'].replace('../', 'ppt/')
+      if (relationshipArray.constructor !== Array) relationshipArray = [relationshipArray]
+      for (const relationshipArrayItem of relationshipArray) {
+        diagramResObj[relationshipArrayItem['attrs']['Id']] = {
+          'type': relationshipArrayItem['attrs']['Type'].replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/', ''),
+          'target': relationshipArrayItem['attrs']['Target'].replace('../', 'ppt/')
         }
       }
     }
@@ -274,14 +253,9 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
 
   const elements = []
   for (const nodeKey in nodes) {
-    if (nodes[nodeKey].constructor === Array) {
-      for (const node of nodes[nodeKey]) {
-        const ret = await processNodesInSlide(nodeKey, node, warpObj, 'slide')
-        if (ret) elements.push(ret)
-      }
-    } 
-    else {
-      const ret = await processNodesInSlide(nodeKey, nodes[nodeKey], warpObj, 'slide')
+    if (nodes[nodeKey].constructor !== Array) nodes[nodeKey] = [nodes[nodeKey]]
+    for (const node of nodes[nodeKey]) {
+      const ret = await processNodesInSlide(nodeKey, node, warpObj, 'slide')
       if (ret) elements.push(ret)
     }
   }

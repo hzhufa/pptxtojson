@@ -226,6 +226,7 @@ export type SlideFill = SlideColorFill | SlideImageFill | SlideGradientFill
 export interface Slide {
   fill: SlideFill
   elements: Element[]
+  layoutElements: Element[]
   note: string
 }
 
