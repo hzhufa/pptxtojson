@@ -5,6 +5,32 @@ export interface Shadow {
   color: string
 }
 
+export interface ColorFill {
+  type: 'color'
+  value: string
+}
+
+export interface ImageFill {
+  type: 'image'
+  value: {
+    picBase64: string
+    opacity: number
+  }
+}
+
+export interface GradientFill {
+  type: 'gradient'
+  value: {
+    rot: number
+    colors: {
+      pos: string
+      color: string
+    }[]
+  }
+}
+
+export type Fill = ColorFill | ImageFill | GradientFill
+
 export interface Shape {
   type: 'shape'
   left: number
@@ -16,7 +42,7 @@ export interface Shape {
   borderType: 'solid' | 'dashed' | 'dotted'
   borderStrokeDasharray: string
   shadow?: Shadow
-  fillColor: string
+  fill: Fill
   content: string
   isFlipV: boolean
   isFlipH: boolean
@@ -39,7 +65,7 @@ export interface Text {
   borderType: 'solid' | 'dashed' | 'dotted'
   borderStrokeDasharray: string
   shadow?: Shadow
-  fillColor: string
+  fill: Fill
   isFlipV: boolean
   isFlipH: boolean
   isVertical: boolean
@@ -197,34 +223,8 @@ export interface Group {
 }
 export type Element = BaseElement | Group
 
-export interface SlideColorFill {
-  type: 'color'
-  value: string
-}
-
-export interface SlideImageFill {
-  type: 'image'
-  value: {
-    picBase64: string
-    opacity: number
-  }
-}
-
-export interface SlideGradientFill {
-  type: 'gradient'
-  value: {
-    rot: number
-    colors: {
-      pos: string
-      color: string
-    }[]
-  }
-}
-
-export type SlideFill = SlideColorFill | SlideImageFill | SlideGradientFill
-
 export interface Slide {
-  fill: SlideFill
+  fill: Fill
   elements: Element[]
   layoutElements: Element[]
   note: string

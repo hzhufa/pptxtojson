@@ -87,31 +87,48 @@ export async function getBgPicFill(bgPr, sorce, warpObj) {
   }
 }
 
+export function getGradientFill(node, warpObj) {
+  const gsLst = node['a:gsLst']['a:gs']
+  const colors = []
+  for (let i = 0; i < gsLst.length; i++) {
+    const lo_color = getSolidFill(gsLst[i], undefined, undefined, warpObj)
+    const pos = getTextByPathList(gsLst[i], ['attrs', 'pos'])
+    
+    colors[i] = {
+      pos: pos ? (pos / 1000 + '%') : '',
+      color: lo_color,
+    }
+  }
+  const lin = node['a:lin']
+  let rot = 90
+  if (lin) rot = angleToDegrees(lin['attrs']['ang']) + 90
+  return {
+    rot,
+    colors: colors.sort((a, b) => parseInt(a.pos) - parseInt(b.pos)),
+  }
+}
+
 export function getBgGradientFill(bgPr, phClr, slideMasterContent, warpObj) {
   if (bgPr) {
     const grdFill = bgPr['a:gradFill']
     const gsLst = grdFill['a:gsLst']['a:gs']
-    const color_ary = []
+    const colors = []
     
     for (let i = 0; i < gsLst.length; i++) {
       const lo_color = getSolidFill(gsLst[i], slideMasterContent['p:sldMaster']['p:clrMap']['attrs'], phClr, warpObj)
       const pos = getTextByPathList(gsLst[i], ['attrs', 'pos'])
 
-      color_ary[i] = {
+      colors[i] = {
         pos: pos ? (pos / 1000 + '%') : '',
         color: lo_color,
       }
     }
     const lin = grdFill['a:lin']
     let rot = 90
-    if (lin) {
-      rot = angleToDegrees(lin['attrs']['ang'])
-      rot = rot + 90
-    }
-
+    if (lin) rot = angleToDegrees(lin['attrs']['ang']) + 90
     return {
       rot,
-      colors: color_ary.sort((a, b) => parseInt(a.pos) - parseInt(b.pos)),
+      colors: colors.sort((a, b) => parseInt(a.pos) - parseInt(b.pos)),
     }
   }
   else if (phClr) {
@@ -418,41 +435,42 @@ export async function getSlideBackgroundFill(warpObj) {
   }
 }
 
-export function getShapeFill(node, isSvgMode, warpObj) {
-  if (getTextByPathList(node, ['p:spPr', 'a:noFill'])) {
+export async function getShapeFill(node, isSvgMode, warpObj, source) {
+  const fillType = getFillType(getTextByPathList(node, ['p:spPr']))
+  let type = 'color'
+  let fillValue = ''
+  if (fillType === 'NO_FILL') {
     return isSvgMode ? 'none' : ''
-  }
-
-  let fillColor
-  if (!fillColor) {
-    fillColor = getTextByPathList(node, ['p:spPr', 'a:solidFill', 'a:srgbClr', 'attrs', 'val'])
-  }
-
-  if (!fillColor) {
-    const schemeClr = 'a:' + getTextByPathList(node, ['p:spPr', 'a:solidFill', 'a:schemeClr', 'attrs', 'val'])
-    fillColor = getSchemeColorFromTheme(schemeClr, warpObj)
-  }
-
-  if (!fillColor) {
-    const schemeClr = 'a:' + getTextByPathList(node, ['p:style', 'a:fillRef', 'a:schemeClr', 'attrs', 'val'])
-    fillColor = getSchemeColorFromTheme(schemeClr, warpObj)
-  }
-
-  if (fillColor) {
-    fillColor = `#${fillColor}`
-
-    let lumMod = parseInt(getTextByPathList(node, ['p:spPr', 'a:solidFill', 'a:schemeClr', 'a:lumMod', 'attrs', 'val'])) / 100000
-    let lumOff = parseInt(getTextByPathList(node, ['p:spPr', 'a:solidFill', 'a:schemeClr', 'a:lumOff', 'attrs', 'val'])) / 100000
-    if (isNaN(lumMod)) lumMod = 1.0
-    if (isNaN(lumOff)) lumOff = 0
-
-    const color = tinycolor(fillColor).toHsl()
-    const lum = color.l * lumMod + lumOff
-    return tinycolor({ h: color.h, s: color.s, l: lum, a: color.a }).toHexString()
   } 
+  else if (fillType === 'SOLID_FILL') {
+    const shpFill = node['p:spPr']['a:solidFill']
+    fillValue = getSolidFill(shpFill, undefined, undefined, warpObj)
+    type = 'color'
+  }
+  else if (fillType === 'GRADIENT_FILL') {
+    const shpFill = node['p:spPr']['a:gradFill']
+    fillValue = getGradientFill(shpFill, warpObj)
+    type = 'gradient'
+  }
+  else if (fillType === 'PIC_FILL') {
+    const shpFill = node['p:spPr']['a:blipFill']
+    const picBase64 = await getPicFill(source, shpFill, warpObj)
+    fillValue = {
+      picBase64,
+      opacity: 1,
+    }
+    type = 'image'
+  }
+  if (!fillValue) {
+    const clrName = getTextByPathList(node, ['p:style', 'a:fillRef'])
+    fillValue = getSolidFill(clrName, undefined, undefined, warpObj)
+    type = 'color'
+  }
 
-  if (isSvgMode) return 'none'
-  return fillColor
+  return {
+    type,
+    value: fillValue,
+  }
 }
 
 export function getSolidFill(solidFill, clrMap, phClr, warpObj) {

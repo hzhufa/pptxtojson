@@ -382,10 +382,10 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
 
   switch (nodeKey) {
     case 'p:sp': // Shape, Text
-      json = processSpNode(nodeValue, warpObj, source)
+      json = await processSpNode(nodeValue, warpObj, source)
       break
     case 'p:cxnSp': // Shape, Text
-      json = processCxnSpNode(nodeValue, warpObj, source)
+      json = await processCxnSpNode(nodeValue, warpObj, source)
       break
     case 'p:pic': // Image, Video, Audio
       json = await processPicNode(nodeValue, warpObj, source)
@@ -482,7 +482,7 @@ async function processGroupSpNode(node, warpObj, source) {
   }
 }
 
-function processSpNode(node, warpObj, source) {
+async function processSpNode(node, warpObj, source) {
   const name = getTextByPathList(node, ['p:nvSpPr', 'p:cNvPr', 'attrs', 'name'])
   const idx = getTextByPathList(node, ['p:nvSpPr', 'p:nvPr', 'p:ph', 'attrs', 'idx'])
   let type = getTextByPathList(node, ['p:nvSpPr', 'p:nvPr', 'p:ph', 'attrs', 'type'])
@@ -517,18 +517,18 @@ function processSpNode(node, warpObj, source) {
     else type = 'obj'
   }
 
-  return genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order, warpObj)
+  return await genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order, warpObj, source)
 }
 
-function processCxnSpNode(node, warpObj) {
+async function processCxnSpNode(node, warpObj, source) {
   const name = node['p:nvCxnSpPr']['p:cNvPr']['attrs']['name']
   const type = (node['p:nvCxnSpPr']['p:nvPr']['p:ph'] === undefined) ? undefined : node['p:nvSpPr']['p:nvPr']['p:ph']['attrs']['type']
   const order = node['attrs']['order']
 
-  return genShape(node, undefined, undefined, name, type, order, warpObj)
+  return await genShape(node, undefined, undefined, name, type, order, warpObj, source)
 }
 
-function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order, warpObj) {
+async function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order, warpObj, source) {
   const xfrmList = ['p:spPr', 'a:xfrm']
   const slideXfrmNode = getTextByPathList(node, xfrmList)
   const slideLayoutXfrmNode = getTextByPathList(slideLayoutSpNode, xfrmList)
@@ -560,7 +560,7 @@ function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order,
   }
 
   const { borderColor, borderWidth, borderType, strokeDasharray } = getBorder(node, type, warpObj)
-  const fillColor = getShapeFill(node, undefined, warpObj) || ''
+  const fill = await getShapeFill(node, undefined, warpObj, source) || ''
 
   let shadow
   const outerShdwNode = getTextByPathList(node, ['p:spPr', 'a:effectLst', 'a:outerShdw'])
@@ -578,7 +578,7 @@ function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, order,
     borderWidth,
     borderType,
     borderStrokeDasharray: strokeDasharray,
-    fillColor,
+    fill,
     content,
     isFlipV,
     isFlipH,
@@ -736,13 +736,13 @@ async function processGraphicFrameNode(node, warpObj, source) {
   let result
   switch (graphicTypeUri) {
     case 'http://schemas.openxmlformats.org/drawingml/2006/table':
-      result = genTable(node, warpObj)
+      result = await genTable(node, warpObj)
       break
     case 'http://schemas.openxmlformats.org/drawingml/2006/chart':
       result = await genChart(node, warpObj)
       break
     case 'http://schemas.openxmlformats.org/drawingml/2006/diagram':
-      result = genDiagram(node, warpObj)
+      result = await genDiagram(node, warpObj)
       break
     case 'http://schemas.openxmlformats.org/presentationml/2006/ole':
       let oleObjNode = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'mc:AlternateContent', 'mc:Fallback', 'p:oleObj'])
@@ -754,7 +754,7 @@ async function processGraphicFrameNode(node, warpObj, source) {
   return result
 }
 
-function genTable(node, warpObj) {
+async function genTable(node, warpObj) {
   const order = node['attrs']['order']
   const tableNode = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'a:tbl'])
   const xfrmNode = getTextByPathList(node, ['p:xfrm'])
@@ -872,7 +872,7 @@ function genTable(node, warpObj) {
           }
         }
         const text = genTextBody(tcNode['a:txBody'], tcNode, undefined, undefined, warpObj)
-        const cell = getTableCellParams(tcNode, thisTblStyle, a_sorce, warpObj)
+        const cell = await getTableCellParams(tcNode, thisTblStyle, a_sorce, warpObj)
         const td = { text }
         if (cell.rowSpan) td.rowSpan = cell.rowSpan
         if (cell.colSpan) td.colSpan = cell.colSpan
@@ -903,7 +903,7 @@ function genTable(node, warpObj) {
       }
 
       const text = genTextBody(tcNodes['a:txBody'], tcNodes, undefined, undefined, warpObj)
-      const cell = getTableCellParams(tcNodes, thisTblStyle, a_sorce, warpObj)
+      const cell = await getTableCellParams(tcNodes, thisTblStyle, a_sorce, warpObj)
       const td = { text }
       if (cell.rowSpan) td.rowSpan = cell.rowSpan
       if (cell.colSpan) td.colSpan = cell.colSpan
@@ -964,7 +964,7 @@ async function genChart(node, warpObj) {
   return data
 }
 
-function genDiagram(node, warpObj) {
+async function genDiagram(node, warpObj) {
   const order = node['attrs']['order']
   const xfrmNode = getTextByPathList(node, ['p:xfrm'])
   const { left, top } = getPosition(xfrmNode, undefined, undefined)
@@ -974,7 +974,7 @@ function genDiagram(node, warpObj) {
   const elements = []
   if (dgmDrwSpArray) {
     for (const item of dgmDrwSpArray) {
-      const el = processSpNode(item, warpObj, 'diagramBg')
+      const el = await processSpNode(item, warpObj, 'diagramBg')
       if (el) elements.push(el)
     }
   }

@@ -43,7 +43,7 @@ export function getTableBorders(node, warpObj) {
   return borderStyles
 }
 
-export function getTableCellParams(tcNode, thisTblStyle, cellSource, warpObj) {
+export async function getTableCellParams(tcNode, thisTblStyle, cellSource, warpObj) {
   const rowSpan = getTextByPathList(tcNode, ['attrs', 'rowSpan'])
   const colSpan = getTextByPathList(tcNode, ['attrs', 'gridSpan'])
   const vMerge = getTextByPathList(tcNode, ['attrs', 'vMerge'])
@@ -55,7 +55,11 @@ export function getTableCellParams(tcNode, thisTblStyle, cellSource, warpObj) {
   const getCelFill = getTextByPathList(tcNode, ['a:tcPr'])
   if (getCelFill) {
     const cellObj = { 'p:spPr': getCelFill }
-    fillColor = getShapeFill(cellObj, undefined, warpObj)
+    const fill = await getShapeFill(cellObj, undefined, warpObj)
+    console.log(fill)
+    if (fill && fill.type === 'color' && fill.value) {
+      fillColor = fill.value 
+    }
   }
   if (!fillColor) {
     let bgFillschemeClr
