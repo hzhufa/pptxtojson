@@ -54,8 +54,6 @@ export function eachElement(node, func) {
 }
 
 export function getTextByPathList(node, path) {
-  if (path.constructor !== Array) throw Error('Error of path type! path is not array.')
-
   if (!node) return node
 
   for (const key of path) {

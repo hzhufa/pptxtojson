@@ -63,6 +63,10 @@ export async function getPicFill(type, node, warpObj) {
     const imgArrayBuffer = await warpObj['zip'].file(imgPath).async('arraybuffer')
     const imgMimeType = getMimeType(imgExt)
     img = `data:${imgMimeType};base64,${base64ArrayBuffer(imgArrayBuffer)}`
+
+    const loadedImages = warpObj['loaded-images'] || {}
+    loadedImages[imgPath] = img
+    warpObj['loaded-images'] = loadedImages
   }
   return img
 }

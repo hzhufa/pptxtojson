@@ -95,7 +95,6 @@ async function loadTheme(zip) {
   else if (relationshipArray['attrs']['Type'] === 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme') {
     themeURI = relationshipArray['attrs']['Target']
   }
-  if (!themeURI) throw Error(`Can't open theme file.`)
 
   return await readXmlFile(zip, 'ppt/' + themeURI)
 }
@@ -270,8 +269,8 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
     diagramResObj,
     defaultTextStyle,
   }
-  // const bgElements = await getBackground(warpObj)
-  const bgColor = await getSlideBackgroundFill(warpObj)
+  const layoutElements = await getLayoutElements(warpObj)
+  const fill = await getSlideBackgroundFill(warpObj)
 
   const elements = []
   for (const nodeKey in nodes) {
@@ -288,8 +287,9 @@ async function processSingleSlide(zip, sldFileName, themeContent, defaultTextSty
   }
 
   return {
-    fill: bgColor,
+    fill,
     elements,
+    layoutElements,
     note,
   }
 }
@@ -307,56 +307,62 @@ function getNote(noteContent) {
     if (rNodes.constructor !== Array) rNodes = [rNodes]
     for (const rNode of rNodes) {
       const t = getTextByPathList(rNode, ['a:t'])
-      if (t) text += t
+      if (t && typeof t === 'string') text += t
     }
   }
   return text
 }
 
-// async function getBackground(warpObj) {
-//   const elements = []
-//   const slideLayoutContent = warpObj['slideLayoutContent']
-//   const slideMasterContent = warpObj['slideMasterContent']
-//   const nodesSldLayout = getTextByPathList(slideLayoutContent, ['p:sldLayout', 'p:cSld', 'p:spTree'])
-//   const nodesSldMaster = getTextByPathList(slideMasterContent, ['p:sldMaster', 'p:cSld', 'p:spTree'])
+async function getLayoutElements(warpObj) {
+  const elements = []
+  const slideLayoutContent = warpObj['slideLayoutContent']
+  const slideMasterContent = warpObj['slideMasterContent']
+  const nodesSldLayout = getTextByPathList(slideLayoutContent, ['p:sldLayout', 'p:cSld', 'p:spTree'])
+  const nodesSldMaster = getTextByPathList(slideMasterContent, ['p:sldMaster', 'p:cSld', 'p:spTree'])
 
-//   const showMasterSp = getTextByPathList(slideLayoutContent, ['p:sldLayout', 'attrs', 'showMasterSp'])
-//   if (nodesSldLayout) {
-//     for (const nodeKey in nodesSldLayout) {
-//       if (nodesSldLayout[nodeKey].constructor === Array) {
-//         for (let i = 0; i < nodesSldLayout[nodeKey].length; i++) {
-//           const ph_type = getTextByPathList(nodesSldLayout[nodeKey][i], ['p:nvSpPr', 'p:nvPr', 'p:ph', 'attrs', 'type'])
-//           if (ph_type !== 'pic') {
-//             const ret = await processNodesInSlide(nodeKey, nodesSldLayout[nodeKey][i], warpObj, 'slideLayoutBg')
-//             if (ret) elements.push(ret)
-//           }
-//         }
-//       } 
-//       else {
-//         const ph_type = getTextByPathList(nodesSldLayout[nodeKey], ['p:nvSpPr', 'p:nvPr', 'p:ph', 'attrs', 'type'])
-//         if (ph_type !== 'pic') {
-//           const ret = await processNodesInSlide(nodeKey, nodesSldLayout[nodeKey], warpObj, 'slideLayoutBg')
-//           if (ret) elements.push(ret)
-//         }
-//       }
-//     }
-//   }
-//   if (nodesSldMaster && (showMasterSp === '1' || showMasterSp)) {
-//     for (const nodeKey in nodesSldMaster) {
-//       if (nodesSldMaster[nodeKey].constructor === Array) {
-//         for (let i = 0; i < nodesSldMaster[nodeKey].length; i++) {
-//           const ret = await processNodesInSlide(nodeKey, nodesSldMaster[nodeKey][i], warpObj, 'slideMasterBg')
-//           if (ret) elements.push(ret)
-//         }
-//       } 
-//       else {
-//         const ret = await processNodesInSlide(nodeKey, nodesSldMaster[nodeKey], warpObj, 'slideMasterBg')
-//         if (ret) elements.push(ret)
-//       }
-//     }
-//   }
-//   return elements
-// }
+  const showMasterSp = getTextByPathList(slideLayoutContent, ['p:sldLayout', 'attrs', 'showMasterSp'])
+  if (nodesSldLayout) {
+    for (const nodeKey in nodesSldLayout) {
+      if (nodesSldLayout[nodeKey].constructor === Array) {
+        for (let i = 0; i < nodesSldLayout[nodeKey].length; i++) {
+          const ph = getTextByPathList(nodesSldLayout[nodeKey][i], ['p:nvSpPr', 'p:nvPr', 'p:ph'])
+          if (!ph) {
+            const ret = await processNodesInSlide(nodeKey, nodesSldLayout[nodeKey][i], warpObj, 'slideLayoutBg')
+            if (ret) elements.push(ret)
+          }
+        }
+      } 
+      else {
+        const ph = getTextByPathList(nodesSldLayout[nodeKey], ['p:nvSpPr', 'p:nvPr', 'p:ph'])
+        if (!ph) {
+          const ret = await processNodesInSlide(nodeKey, nodesSldLayout[nodeKey], warpObj, 'slideLayoutBg')
+          if (ret) elements.push(ret)
+        }
+      }
+    }
+  }
+  if (nodesSldMaster && showMasterSp !== '0') {
+    for (const nodeKey in nodesSldMaster) {
+      if (nodesSldMaster[nodeKey].constructor === Array) {
+        for (let i = 0; i < nodesSldMaster[nodeKey].length; i++) {
+          const ph = getTextByPathList(nodesSldMaster[nodeKey][i], ['p:nvSpPr', 'p:nvPr', 'p:ph'])
+          if (!ph) {
+            const ret = await processNodesInSlide(nodeKey, nodesSldMaster[nodeKey][i], warpObj, 'slideMasterBg')
+            if (ret) elements.push(ret)
+          }
+        }
+      } 
+      else {
+        const ph = getTextByPathList(nodesSldMaster[nodeKey], ['p:nvSpPr', 'p:nvPr', 'p:ph'])
+        if (!ph) {
+          const ret = await processNodesInSlide(nodeKey, nodesSldMaster[nodeKey], warpObj, 'slideMasterBg')
+          if (ret) elements.push(ret)
+        }
+      }
+    }
+  }
+  return elements
+}
 
 function indexNodes(content) {
   const keys = Object.keys(content)
@@ -408,7 +414,7 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
       json = processCxnSpNode(nodeValue, warpObj, source)
       break
     case 'p:pic': // Image, Video, Audio
-      json = processPicNode(nodeValue, warpObj, source)
+      json = await processPicNode(nodeValue, warpObj, source)
       break
     case 'p:graphicFrame': // Chart, Diagram, Table
       json = await processGraphicFrameNode(nodeValue, warpObj, source)
@@ -421,7 +427,7 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
         json = await processGroupSpNode(getTextByPathList(nodeValue, ['mc:Fallback']), warpObj, source)
       }
       else if (getTextByPathList(nodeValue, ['mc:Choice'])) {
-        json = await processMathNode(getTextByPathList(nodeValue, ['mc:Choice']))
+        json = processMathNode(getTextByPathList(nodeValue, ['mc:Choice']))
       }
       break
     default:
@@ -767,7 +773,7 @@ async function processGraphicFrameNode(node, warpObj, source) {
     case 'http://schemas.openxmlformats.org/presentationml/2006/ole':
       let oleObjNode = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'mc:AlternateContent', 'mc:Fallback', 'p:oleObj'])
       if (!oleObjNode) oleObjNode = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'p:oleObj'])
-      else processGroupSpNode(oleObjNode, warpObj, source)
+      if (oleObjNode) result = await processGroupSpNode(oleObjNode, warpObj, source)
       break
     default:
   }
