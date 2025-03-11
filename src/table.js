@@ -56,7 +56,7 @@ export async function getTableCellParams(tcNode, thisTblStyle, cellSource, warpO
   if (getCelFill) {
     const cellObj = { 'p:spPr': getCelFill }
     const fill = await getShapeFill(cellObj, undefined, warpObj)
-    console.log(fill)
+
     if (fill && fill.type === 'color' && fill.value) {
       fillColor = fill.value 
     }

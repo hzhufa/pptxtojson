@@ -71,6 +71,18 @@ export async function getPicFill(type, node, warpObj) {
   return img
 }
 
+export function getPicFillOpacity(node) {
+  const aBlipNode = node['a:blip']
+
+  const aphaModFixNode = getTextByPathList(aBlipNode, ['a:alphaModFix', 'attrs'])
+  let opacity = 1
+  if (aphaModFixNode && aphaModFixNode['amt'] && aphaModFixNode['amt'] !== '') {
+    opacity = parseInt(aphaModFixNode['amt']) / 100000
+  }
+
+  return opacity
+}
+
 export async function getBgPicFill(bgPr, sorce, warpObj) {
   const picBase64 = await getPicFill(sorce, bgPr['a:blipFill'], warpObj)
   const aBlipNode = bgPr['a:blipFill']['a:blip']
@@ -455,9 +467,10 @@ export async function getShapeFill(node, isSvgMode, warpObj, source) {
   else if (fillType === 'PIC_FILL') {
     const shpFill = node['p:spPr']['a:blipFill']
     const picBase64 = await getPicFill(source, shpFill, warpObj)
+    const opacity = getPicFillOpacity(shpFill)
     fillValue = {
       picBase64,
-      opacity: 1,
+      opacity,
     }
     type = 'image'
   }
