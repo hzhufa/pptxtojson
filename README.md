@@ -60,7 +60,10 @@ document.querySelector('input').addEventListener('change', evt => {
 				"borderWidth": 1,
 				"borderType": "solid",
 				"borderStrokeDasharray": 0,
-				"fillColor": "#5b9bd5",
+				"fill": {
+					"type": "color",
+					"value": "#FF0000"
+				},
 				"content": "<p style=\"text-align: center;\"><span style=\"font-size: 18pt;font-family: Calibri;\">TEST</span></p>",
 				"isFlipV": false,
 				"isFlipH": false,
@@ -82,6 +85,8 @@ document.querySelector('input').addEventListener('change', evt => {
 ```
 
 # 📕 完整功能支持
+
+### 幻灯片主题色 `themeColors`
 
 ### 幻灯片尺寸 `size`
 - 幻灯片宽度 `width`
@@ -106,7 +111,7 @@ document.querySelector('input').addEventListener('change', evt => {
 - 边框类型（实线、点线、虚线） `borderType`
 - 非实线边框样式 `borderStrokeDasharray`
 - 阴影 `shadow`
-- 填充色 `fillColor`
+- 填充（颜色、图片、渐变） `fill`
 - 内容文字（HTML富文本） `content`
 - 垂直翻转 `isFlipV`
 - 水平翻转 `isFlipH`
@@ -135,7 +140,7 @@ document.querySelector('input').addEventListener('change', evt => {
 - 边框类型（实线、点线、虚线） `borderType`
 - 非实线边框样式 `borderStrokeDasharray`
 - 阴影 `shadow`
-- 填充色 `fillColor`
+- 填充（颜色、图片、渐变） `fill`
 - 内容文字（HTML富文本） `content`
 - 垂直翻转 `isFlipV`
 - 水平翻转 `isFlipH`

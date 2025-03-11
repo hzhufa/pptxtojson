@@ -20,7 +20,7 @@ export async function parse(file) {
 
   const filesInfo = await getContentTypes(zip)
   const { width, height, defaultTextStyle } = await getSlideInfo(zip)
-  const themeContent = await loadTheme(zip)
+  const { themeContent, themeColors } = await getTheme(zip)
 
   for (const filename of filesInfo.slides) {
     const singleSlide = await processSingleSlide(zip, filename, themeContent, defaultTextStyle)
@@ -29,6 +29,7 @@ export async function parse(file) {
 
   return {
     slides,
+    themeColors,
     size: {
       width,
       height,
@@ -79,7 +80,7 @@ async function getSlideInfo(zip) {
   }
 }
 
-async function loadTheme(zip) {
+async function getTheme(zip) {
   const preResContent = await readXmlFile(zip, 'ppt/_rels/presentation.xml.rels')
   const relationshipArray = preResContent['Relationships']['Relationship']
   let themeURI
@@ -96,7 +97,19 @@ async function loadTheme(zip) {
     themeURI = relationshipArray['attrs']['Target']
   }
 
-  return await readXmlFile(zip, 'ppt/' + themeURI)
+  const themeContent = await readXmlFile(zip, 'ppt/' + themeURI)
+
+  const themeColors = []
+  const clrScheme = getTextByPathList(themeContent, ['a:theme', 'a:themeElements', 'a:clrScheme'])
+  if (clrScheme) {
+    for (let i = 1; i <= 6; i++) {
+      if (clrScheme[`a:accent${i}`] === undefined) break
+      const color = getTextByPathList(clrScheme, [`a:accent${i}`, 'a:srgbClr', 'attrs', 'val'])
+      if (color) themeColors.push('#' + color)
+    }
+  }
+
+  return { themeContent, themeColors }
 }
 
 async function processSingleSlide(zip, sldFileName, themeContent, defaultTextStyle) {
