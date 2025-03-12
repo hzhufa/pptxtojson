@@ -1,6 +1,6 @@
 {
 	"name": "pptxtojson",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "A javascript tool for parsing .pptx file",
 	"type": "module",
 	"main": "./dist/index.umd.js",
@@ -24,7 +24,7 @@
 	"homepage": "https://github.com/pipipi-pikachu/pptxtojson",
 	"license": "MIT",
 	"publishConfig": {
-		"registry": "https://registry.npmjs.org"
+		"registry": "https://registry.npmjs.com"
 	},
 	"dependencies": {
 		"jszip": "^3.10.1",

@@ -567,10 +567,7 @@ async function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, 
   else txtRotate = rotate
 
   let content = ''
-  if (node['p:txBody']) {
-    content = genTextBody(node['p:txBody'], node, slideLayoutSpNode, type, warpObj)
-    if (!hasValidText(content)) content = ''
-  }
+  if (node['p:txBody']) content = genTextBody(node['p:txBody'], node, slideLayoutSpNode, type, warpObj)
 
   const { borderColor, borderWidth, borderType, strokeDasharray } = getBorder(node, type, warpObj)
   const fill = await getShapeFill(node, undefined, warpObj, source) || ''
@@ -608,6 +605,7 @@ async function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, 
     const w = parseInt(ext['cx']) * RATIO_EMUs_Points
     const h = parseInt(ext['cy']) * RATIO_EMUs_Points
     const d = getCustomShapePath(custShapType, w, h)
+    if (data.content && !hasValidText(data.content)) data.content = ''
 
     return {
       ...data,
@@ -617,6 +615,7 @@ async function genShape(node, slideLayoutSpNode, slideMasterSpNode, name, type, 
     }
   }
   if (shapType && (type === 'obj' || !type)) {
+    if (data.content && !hasValidText(data.content)) data.content = ''
     return {
       ...data,
       type: 'shape',
