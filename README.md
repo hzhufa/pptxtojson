@@ -9,7 +9,7 @@
 
 # 🎯 注意事项
 ### ⚒️ 使用场景
-本仓库诞生于项目 [PPTist](https://github.com/pipipi-pikachu/PPTist) ，希望为其“导入 .pptx 文件功能”提供一个参考示例。不过就目前来说，解析出来的PPT信息与源文件在样式上还是存在不少差距，还不足以直接运用到生产环境中。
+本仓库诞生于项目 [PPTist](https://github.com/pipipi-pikachu/PPTist) ，希望为其“导入 .pptx 文件功能”提供一个参考示例。不过就目前来说，解析出来的PPT信息与源文件在样式上还是存在差距，还不足以直接运用到生产环境中。
 
 但如果你只是需要提取PPT文件的文本内容、媒体资源信息、结构信息等，对排版/样式精准度没有特别高的要求，那么 pptxtojson 可能会对你有帮助。
 
@@ -64,7 +64,7 @@ document.querySelector('input').addEventListener('change', evt => {
 					"type": "color",
 					"value": "#FF0000"
 				},
-				"content": "<p style=\"text-align: center;\"><span style=\"font-size: 18pt;font-family: Calibri;\">TEST</span></p>",
+				"content": "<p style=\"text-align: center;\"><span style=\"font-size: 18px;font-family: Calibri;\">TEST</span></p>",
 				"isFlipV": false,
 				"isFlipH": false,
 				"rotate": 0,
@@ -93,9 +93,7 @@ document.querySelector('input').addEventListener('change', evt => {
 - 幻灯片高度 `height`
 
 ### 幻灯片页面 `slides`
-#### 页面背景填充 `fill`
-- 背景类型（颜色、图片、渐变） `type`
-- 背景值 `value`
+#### 页面背景填充（颜色、图片、渐变） `fill`
 
 #### 页面备注 `note`
 
@@ -168,6 +166,7 @@ document.querySelector('input').addEventListener('change', evt => {
 - 宽度 `width`
 - 高度 `height`
 - 图表数据 `data`
+- 图表主题色 `colors`
 - 图表类型 `chartType`
 - 柱状图方向 `barDir`
 - 是否带数据标记 `marker`

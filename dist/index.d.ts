@@ -148,6 +148,7 @@ export interface CommonChart {
   width: number
   height: number
   data: ChartItem[]
+  colors: string[]
   chartType: Exclude<ChartType, 'scatterChart' | 'bubbleChart'>
   barDir?: 'bar' | 'col'
   marker?: boolean
@@ -162,7 +163,8 @@ export interface ScatterChart {
   top: number
   width: number
   height: number
-  data: ScatterChartData,
+  data: ScatterChartData
+  colors: string[]
   chartType: 'scatterChart' | 'bubbleChart'
   order: number
 }

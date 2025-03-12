@@ -954,7 +954,7 @@ async function genChart(node, warpObj) {
   const content = await readXmlFile(warpObj['zip'], refName)
   const plotArea = getTextByPathList(content, ['c:chartSpace', 'c:chart', 'c:plotArea'])
 
-  const chart = getChartInfo(plotArea)
+  const chart = getChartInfo(plotArea, warpObj)
 
   if (!chart) return {}
 
@@ -965,6 +965,7 @@ async function genChart(node, warpObj) {
     width,
     height,
     data: chart.data,
+    colors: chart.colors,
     chartType: chart.type,
     order,
   }
