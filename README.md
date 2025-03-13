@@ -45,38 +45,45 @@ document.querySelector('input').addEventListener('change', evt => {
 ```javascript
 // 输出示例
 {
-	"slides": {
-		"fill": {
-			"type": "color",
-			"value": "#FF0000"
-		},
-		"elements": [
-			{
-				"left":	0,
-				"top": 0,
-				"width": 72,
-				"height":	72,
-				"borderColor": "#1f4e79",
-				"borderWidth": 1,
-				"borderType": "solid",
-				"borderStrokeDasharray": 0,
-				"fill": {
-					"type": "color",
-					"value": "#FF0000"
-				},
-				"content": "<p style=\"text-align: center;\"><span style=\"font-size: 18px;font-family: Calibri;\">TEST</span></p>",
-				"isFlipV": false,
-				"isFlipH": false,
-				"rotate": 0,
-				"vAlign": "mid",
-				"name": "矩形 1",
-				"type": "shape",
-				"shapType": "rect"
+	"slides": [
+		{
+			"fill": {
+				"type": "color",
+				"value": "#FF0000"
 			},
-			// more...
-		],
-		"note": "演讲者备注内容..."
-	},
+			"elements": [
+				{
+					"left":	0,
+					"top": 0,
+					"width": 72,
+					"height":	72,
+					"borderColor": "#1F4E79",
+					"borderWidth": 1,
+					"borderType": "solid",
+					"borderStrokeDasharray": 0,
+					"fill": {
+						"type": "color",
+						"value": "#FF0000"
+					},
+					"content": "<p style=\"text-align: center;\"><span style=\"font-size: 18pt;font-family: Calibri;\">TEST</span></p>",
+					"isFlipV": false,
+					"isFlipH": false,
+					"rotate": 0,
+					"vAlign": "mid",
+					"name": "矩形 1",
+					"type": "shape",
+					"shapType": "rect"
+				},
+				// more...
+			],
+			"layoutElements": [
+				// more...
+			],
+			"note": "演讲者备注内容..."
+		},
+		// more...
+	],
+	"themeColors": ['#4472C4', '#ED7D31', '#A5A5A5', '#FFC000', '#5B9BD5', '#70AD47'],
 	"size": {
 		"width": 960,
 		"height": 540
@@ -224,3 +231,10 @@ document.querySelector('input').addEventListener('change', evt => {
 
 # 📄 开源协议
 MIT License | Copyright © 2020-PRESENT [pipipi-pikachu](https://github.com/pipipi-pikachu)
+
+# ☕ 打赏
+如果该项目帮到了您，还请您不吝打赏！
+
+<p align="left">
+    <img src='/dist/wx.png' />
+</p>
