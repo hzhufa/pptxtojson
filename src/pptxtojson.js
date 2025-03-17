@@ -949,7 +949,11 @@ async function genChart(node, warpObj) {
   const { width, height } = getSize(xfrmNode, undefined, undefined)
 
   const rid = node['a:graphic']['a:graphicData']['c:chart']['attrs']['r:id']
-  const refName = warpObj['slideResObj'][rid]['target']
+  let refName = getTextByPathList(warpObj['slideResObj'], [rid, 'target'])
+  if (!refName) refName = getTextByPathList(warpObj['layoutResObj'], [rid, 'target'])
+  if (!refName) refName = getTextByPathList(warpObj['masterResObj'], [rid, 'target'])
+  if (!refName) return {}
+
   const content = await readXmlFile(warpObj['zip'], refName)
   const plotArea = getTextByPathList(content, ['c:chartSpace', 'c:chart', 'c:plotArea'])
 
