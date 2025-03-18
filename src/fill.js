@@ -112,10 +112,16 @@ export function getGradientFill(node, warpObj) {
     }
   }
   const lin = node['a:lin']
-  let rot = 90
-  if (lin) rot = angleToDegrees(lin['attrs']['ang']) + 90
+  let rot = 0
+  let pathType = 'line'
+  if (lin) rot = angleToDegrees(lin['attrs']['ang'])
+  else {
+    const path = node['a:path']
+    if (path && path['attrs'] && path['attrs']['path']) pathType = path['attrs']['path'] 
+  }
   return {
     rot,
+    path: pathType,
     colors: colors.sort((a, b) => parseInt(a.pos) - parseInt(b.pos)),
   }
 }
@@ -136,10 +142,16 @@ export function getBgGradientFill(bgPr, phClr, slideMasterContent, warpObj) {
       }
     }
     const lin = grdFill['a:lin']
-    let rot = 90
-    if (lin) rot = angleToDegrees(lin['attrs']['ang']) + 90
+    let rot = 0
+    let pathType = 'line'
+    if (lin) rot = angleToDegrees(lin['attrs']['ang']) + 0
+    else {
+      const path = grdFill['a:path']
+      if (path && path['attrs'] && path['attrs']['path']) pathType = path['attrs']['path'] 
+    }
     return {
       rot,
+      path: pathType,
       colors: colors.sort((a, b) => parseInt(a.pos) - parseInt(b.pos)),
     }
   }

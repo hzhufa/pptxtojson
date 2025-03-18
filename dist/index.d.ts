@@ -21,6 +21,7 @@ export interface ImageFill {
 export interface GradientFill {
   type: 'gradient'
   value: {
+    path: 'line' | 'circle' | 'rect' | 'shape'
     rot: number
     colors: {
       pos: string
