@@ -3,9 +3,19 @@ import { getSchemeColorFromTheme } from './schemeColor'
 import { getTextByPathList } from './utils'
 
 export function getBorder(node, elType, warpObj) {
-  const lineNode = node['p:spPr']['a:ln']
+  let lineNode = node['p:spPr']['a:ln']
+  if (!lineNode) {
+    const lnRefNode = getTextByPathList(node, ['p:style', 'a:lnRef'])
+    if (lnRefNode) {
+      const lnIdx = getTextByPathList(lnRefNode, ['attrs', 'idx'])
+      lineNode = warpObj['themeContent']['a:theme']['a:themeElements']['a:fmtScheme']['a:lnStyleLst']['a:ln'][Number(lnIdx) - 1]
+    }
+  }
+  if (!lineNode) lineNode = node
 
-  let borderWidth = parseInt(getTextByPathList(lineNode, ['attrs', 'w'])) / 12700
+  const isNoFill = getTextByPathList(lineNode, ['a:noFill'])
+
+  let borderWidth = isNoFill ? 0 : (parseInt(getTextByPathList(lineNode, ['attrs', 'w'])) / 12700)
   if (isNaN(borderWidth)) {
     if (lineNode) borderWidth = 0
     else if (elType !== 'obj') borderWidth = 0
