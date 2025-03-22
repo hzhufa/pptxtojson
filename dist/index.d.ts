@@ -209,6 +209,7 @@ export interface Math {
   width: number
   height: number
   latex: string
+  picBase64: string
   order: number
 }
 

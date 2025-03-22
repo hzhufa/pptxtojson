@@ -198,13 +198,14 @@ document.querySelector('input').addEventListener('change', evt => {
 - 高度 `height`
 - 音频blob `blob`
 
-##### 公式（仅支持常见结构）
+##### 公式
 - 类型 `type='math'`
 - 水平坐标 `left`
 - 垂直坐标 `top`
 - 宽度 `width`
 - 高度 `height`
-- LaTeX表达式 `latex`
+- 公式图片 `picBase64`
+- LaTeX表达式（仅支持常见结构） `latex`
 
 ##### Smart图
 - 类型 `type='diagram'`
@@ -227,7 +228,7 @@ document.querySelector('input').addEventListener('change', evt => {
 
 # 🙏 感谢
 本仓库大量参考了 [PPTX2HTML](https://github.com/g21589/PPTX2HTML) 和 [PPTXjs](https://github.com/meshesha/PPTXjs) 的实现。
-> 与它们不同的是，PPTX2HTML 和 PPTXjs 是将PPT文件转换为能够运行的 HTML 页面，而 pptxtojson 做的是将PPT文件转换为干净的 JSON 数据
+> 与它们不同的是：PPTX2HTML 和 PPTXjs 是将PPT文件转换为能够运行的 HTML 页面，而 pptxtojson 做的是将PPT文件转换为干净的 JSON 数据，且在原有基础上进行了大量优化（包括代码质量和提取信息准确度）。
 
 # 📄 开源协议
 MIT License | Copyright © 2020-PRESENT [pipipi-pikachu](https://github.com/pipipi-pikachu)

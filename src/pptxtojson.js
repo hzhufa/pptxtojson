@@ -1,7 +1,7 @@
 import JSZip from 'jszip'
 import { readXmlFile } from './readXmlFile'
 import { getBorder } from './border'
-import { getSlideBackgroundFill, getShapeFill, getSolidFill } from './fill'
+import { getSlideBackgroundFill, getShapeFill, getSolidFill, getPicFill } from './fill'
 import { getChartInfo } from './chart'
 import { getVerticalAlign } from './align'
 import { getPosition, getSize } from './position'
@@ -414,7 +414,7 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
         json = await processGroupSpNode(getTextByPathList(nodeValue, ['mc:Fallback']), warpObj, source)
       }
       else if (getTextByPathList(nodeValue, ['mc:Choice'])) {
-        json = processMathNode(getTextByPathList(nodeValue, ['mc:Choice']))
+        json = await processMathNode(nodeValue, warpObj, source)
       }
       break
     default:
@@ -423,14 +423,20 @@ async function processNodesInSlide(nodeKey, nodeValue, warpObj, source) {
   return json
 }
 
-function processMathNode(node) {
+async function processMathNode(node, warpObj, source) {
+  const choice = getTextByPathList(node, ['mc:Choice'])
+  const fallback = getTextByPathList(node, ['mc:Fallback'])
+
   const order = node['attrs']['order']
-  const xfrmNode = getTextByPathList(node, ['p:sp', 'p:spPr', 'a:xfrm'])
+  const xfrmNode = getTextByPathList(choice, ['p:sp', 'p:spPr', 'a:xfrm'])
   const { top, left } = getPosition(xfrmNode, undefined, undefined)
   const { width, height } = getSize(xfrmNode, undefined, undefined)
 
-  const oMath = findOMath(node)[0]
+  const oMath = findOMath(choice)[0]
   const latex = latexFormart(parseOMath(oMath))
+
+  const blipFill = getTextByPathList(fallback, ['p:sp', 'p:spPr', 'a:blipFill'])
+  const picBase64 = await getPicFill(source, blipFill, warpObj)
 
   return {
     type: 'math',
@@ -439,6 +445,7 @@ function processMathNode(node) {
     width, 
     height,
     latex,
+    picBase64,
     order,
   }
 }
