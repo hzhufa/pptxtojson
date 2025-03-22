@@ -35,7 +35,7 @@ export function getCustomShapePath(custShapType, w, h) {
   const pathLstNode = getTextByPathList(custShapType, ['a:pathLst'])
   let pathNodes = getTextByPathList(pathLstNode, ['a:path'])
 
-  if (Array.isArray(pathNodes)) pathNodes = pathNodes.pop()
+  if (Array.isArray(pathNodes)) pathNodes = pathNodes.shift()
 
   const maxX = parseInt(pathNodes['attrs']['w'])
   const maxY = parseInt(pathNodes['attrs']['h'])
