@@ -161,9 +161,7 @@ document.querySelector('input').addEventListener('change', evt => {
 - 垂直坐标 `top`
 - 宽度 `width`
 - 高度 `height`
-- 边框颜色 `borderColor`
-- 边框宽度 `borderWidth`
-- 边框类型（实线、点线、虚线） `borderType`
+- 边框（4边） `borders`
 - 表格数据 `data`
 
 ##### 图表

@@ -3,7 +3,7 @@ import { getTextByPathList } from './utils'
 import { getBorder } from './border'
 
 export function getTableBorders(node, warpObj) {
-  const borderStyles = {}
+  const borders = {}
   if (node['a:bottom']) {
     const obj = {
       'p:spPr': {
@@ -11,7 +11,7 @@ export function getTableBorders(node, warpObj) {
       }
     }
     const border = getBorder(obj, undefined, warpObj)
-    borderStyles.bottom = border
+    borders.bottom = border
   }
   if (node['a:top']) {
     const obj = {
@@ -20,7 +20,7 @@ export function getTableBorders(node, warpObj) {
       }
     }
     const border = getBorder(obj, undefined, warpObj)
-    borderStyles.top = border
+    borders.top = border
   }
   if (node['a:right']) {
     const obj = {
@@ -29,7 +29,7 @@ export function getTableBorders(node, warpObj) {
       }
     }
     const border = getBorder(obj, undefined, warpObj)
-    borderStyles.right = border
+    borders.right = border
   }
   if (node['a:left']) {
     const obj = {
@@ -38,9 +38,9 @@ export function getTableBorders(node, warpObj) {
       }
     }
     const border = getBorder(obj, undefined, warpObj)
-    borderStyles.left = border
+    borders.left = border
   }
-  return borderStyles
+  return borders
 }
 
 export async function getTableCellParams(tcNode, thisTblStyle, cellSource, warpObj) {
@@ -76,10 +76,38 @@ export async function getTableCellParams(tcNode, thisTblStyle, cellSource, warpO
     if (getTextByPathList(rowTxtStyl, ['attrs', 'b']) === 'on') fontBold = true
   }
 
+  let lin_bottm = getTextByPathList(tcNode, ['a:tcPr', 'a:lnB'])
+  if (!lin_bottm) {
+    if (cellSource) lin_bottm = getTextByPathList(thisTblStyle[cellSource], ['a:tcStyle', 'a:tcBdr', 'a:bottom', 'a:ln'])
+    if (!lin_bottm) lin_bottm = getTextByPathList(thisTblStyle, ['a:wholeTbl', 'a:tcStyle', 'a:tcBdr', 'a:bottom', 'a:ln'])
+  }
+  let lin_top = getTextByPathList(tcNode, ['a:tcPr', 'a:lnT'])
+  if (!lin_top) {
+    if (cellSource) lin_top = getTextByPathList(thisTblStyle[cellSource], ['a:tcStyle', 'a:tcBdr', 'a:top', 'a:ln'])
+    if (!lin_top) lin_top = getTextByPathList(thisTblStyle, ['a:wholeTbl', 'a:tcStyle', 'a:tcBdr', 'a:top', 'a:ln'])
+  }
+  let lin_left = getTextByPathList(tcNode, ['a:tcPr', 'a:lnL'])
+  if (!lin_left) {
+    if (cellSource) lin_left = getTextByPathList(thisTblStyle[cellSource], ['a:tcStyle', 'a:tcBdr', 'a:left', 'a:ln'])
+    if (!lin_left) lin_left = getTextByPathList(thisTblStyle, ['a:wholeTbl', 'a:tcStyle', 'a:tcBdr', 'a:left', 'a:ln'])
+  }
+  let lin_right = getTextByPathList(tcNode, ['a:tcPr', 'a:lnR'])
+  if (!lin_right) {
+    if (cellSource) lin_right = getTextByPathList(thisTblStyle[cellSource], ['a:tcStyle', 'a:tcBdr', 'a:right', 'a:ln'])
+    if (!lin_right) lin_right = getTextByPathList(thisTblStyle, ['a:wholeTbl', 'a:tcStyle', 'a:tcBdr', 'a:right', 'a:ln'])
+  }
+
+  const borders = {}
+  if (lin_bottm) borders.bottom = getBorder(lin_bottm, undefined, warpObj)
+  if (lin_top) borders.top = getBorder(lin_top, undefined, warpObj)
+  if (lin_left) borders.left = getBorder(lin_left, undefined, warpObj)
+  if (lin_right) borders.right = getBorder(lin_right, undefined, warpObj)
+
   return {
     fillColor,
     fontColor,
     fontBold,
+    borders,
     rowSpan: rowSpan ? +rowSpan : undefined,
     colSpan: colSpan ? +colSpan : undefined,
     vMerge: vMerge ? +vMerge : undefined,

@@ -3,7 +3,7 @@ import { getSchemeColorFromTheme } from './schemeColor'
 import { getTextByPathList } from './utils'
 
 export function getBorder(node, elType, warpObj) {
-  let lineNode = node['p:spPr']['a:ln']
+  let lineNode = getTextByPathList(node, ['p:spPr', 'a:ln'])
   if (!lineNode) {
     const lnRefNode = getTextByPathList(node, ['p:style', 'a:lnRef'])
     if (lnRefNode) {
@@ -46,7 +46,7 @@ export function getBorder(node, elType, warpObj) {
     }
   }
 
-  if (!borderColor) borderColor = '#000'
+  if (!borderColor) borderColor = '#000000'
   else borderColor = `#${borderColor}`
 
   const type = getTextByPathList(lineNode, ['a:prstDash', 'attrs', 'val'])

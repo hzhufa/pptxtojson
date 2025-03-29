@@ -818,13 +818,10 @@ async function genTable(node, warpObj) {
   }
   if (thisTblStyle) thisTblStyle['tblStylAttrObj'] = tblStylAttrObj
 
-  let tbl_border
+  let borders = {}
   const tblStyl = getTextByPathList(thisTblStyle, ['a:wholeTbl', 'a:tcStyle'])
   const tblBorderStyl = getTextByPathList(tblStyl, ['a:tcBdr'])
-  if (tblBorderStyl) {
-    const tbl_borders = getTableBorders(tblBorderStyl, warpObj)
-    if (tbl_borders) tbl_border = tbl_borders.bottom || tbl_borders.left || tbl_borders.right || tbl_borders.top
-  }
+  if (tblBorderStyl) borders = getTableBorders(tblBorderStyl, warpObj)
 
   let tbl_bgcolor = ''
   let tbl_bgFillschemeClr = getTextByPathList(thisTblStyle, ['a:tblBg', 'a:fillRef'])
@@ -900,6 +897,7 @@ async function genTable(node, warpObj) {
         if (cell.fontBold || fontBold) td.fontBold = cell.fontBold || fontBold
         if (cell.fontColor || fontColor) td.fontColor = cell.fontColor || fontColor
         if (cell.fillColor || fillColor || tbl_bgcolor) td.fillColor = cell.fillColor || fillColor || tbl_bgcolor
+        if (cell.borders) td.borders = cell.borders
 
         tr.push(td)
       }
@@ -931,6 +929,7 @@ async function genTable(node, warpObj) {
       if (cell.fontBold || fontBold) td.fontBold = cell.fontBold || fontBold
       if (cell.fontColor || fontColor) td.fontColor = cell.fontColor || fontColor
       if (cell.fillColor || fillColor || tbl_bgcolor) td.fillColor = cell.fillColor || fillColor || tbl_bgcolor
+      if (cell.borders) td.borders = cell.borders
 
       tr.push(td)
     }
@@ -945,7 +944,7 @@ async function genTable(node, warpObj) {
     height,
     data,
     order,
-    ...(tbl_border || {}),
+    borders,
   }
 }
 

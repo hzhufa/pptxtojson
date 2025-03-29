@@ -32,6 +32,12 @@ export interface GradientFill {
 
 export type Fill = ColorFill | ImageFill | GradientFill
 
+export interface Border {
+  borderColor: string
+  borderWidth: number
+  borderType:'solid' | 'dashed' | 'dotted'
+}
+
 export interface Shape {
   type: 'shape'
   left: number
@@ -99,6 +105,12 @@ export interface TableCell {
   fillColor?: string
   fontColor?: string
   fontBold?: boolean
+  borders: {
+    top?: Border
+    bottom?: Border
+    left?: Border
+    right?: Border
+  }
 }
 export interface Table {
   type: 'table'
@@ -107,9 +119,12 @@ export interface Table {
   width: number
   height: number
   data: TableCell[][]
-  borderColor: string
-  borderWidth: number
-  borderType: 'solid' | 'dashed' | 'dotted'
+  borders: {
+    top?: Border
+    bottom?: Border
+    left?: Border
+    right?: Border
+  }
   order: number
 }
 
