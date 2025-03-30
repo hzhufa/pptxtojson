@@ -781,6 +781,17 @@ async function genTable(node, warpObj) {
   const { width, height } = getSize(xfrmNode, undefined, undefined)
 
   const getTblPr = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'a:tbl', 'a:tblPr'])
+  let getColsGrid = getTextByPathList(node, ['a:graphic', 'a:graphicData', 'a:tbl', 'a:tblGrid', 'a:gridCol'])
+  if (getColsGrid.constructor !== Array) getColsGrid = [getColsGrid]
+
+  const colWidths = []
+  if (getColsGrid) {
+    for (const item of getColsGrid) {
+      const colWidthParam = getTextByPathList(item, ['attrs', 'w']) || 0
+      const colWidth = parseInt(colWidthParam) * RATIO_EMUs_Points
+      colWidths.push(colWidth)
+    }
+  }
 
   const firstRowAttr = getTblPr['attrs'] ? getTblPr['attrs']['firstRow'] : undefined
   const firstColAttr = getTblPr['attrs'] ? getTblPr['attrs']['firstCol'] : undefined
@@ -837,8 +848,13 @@ async function genTable(node, warpObj) {
   if (trNodes.constructor !== Array) trNodes = [trNodes]
   
   const data = []
+  const rowHeights = []
   for (let i = 0; i < trNodes.length; i++) {
     const trNode = trNodes[i]
+    
+    const rowHeightParam = getTextByPathList(trNodes[i], ['attrs', 'h']) || 0
+    const rowHeight = parseInt(rowHeightParam) * RATIO_EMUs_Points
+    rowHeights.push(rowHeight)
 
     const {
       fillColor,
@@ -945,6 +961,8 @@ async function genTable(node, warpObj) {
     data,
     order,
     borders,
+    rowHeights,
+    colWidths,
   }
 }
 

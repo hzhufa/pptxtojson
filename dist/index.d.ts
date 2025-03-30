@@ -126,6 +126,8 @@ export interface Table {
     right?: Border
   }
   order: number
+  rowHeights: number[]
+  colWidths: number[]
 }
 
 export type ChartType = 'lineChart' |

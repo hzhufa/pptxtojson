@@ -163,6 +163,8 @@ document.querySelector('input').addEventListener('change', evt => {
 - 高度 `height`
 - 边框（4边） `borders`
 - 表格数据 `data`
+- 行高 `rowHeights`
+- 列宽 `colWidths`
 
 ##### 图表
 - 类型 `type='chart'`
