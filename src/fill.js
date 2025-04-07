@@ -579,3 +579,32 @@ export function getSolidFill(solidFill, clrMap, phClr, warpObj) {
 
   return color
 }
+
+export function createGradientText(colors) {
+  // 获取中间的颜色作为文字颜色
+  const middleIndex = Math.floor(colors.length / 2)
+  return `color: ${colors[middleIndex]['color'] || '#000000'};`
+}
+
+export function getGradFill(solidFill, clrMap, phClr, warpObj) {
+  if (!solidFill || !solidFill['a:gradFill']) return ''
+  
+  const grdFill = solidFill['a:gradFill']
+  if (!grdFill['a:gsLst'] || !grdFill['a:gsLst']['a:gs']) return ''
+  
+  const gsLst = grdFill['a:gsLst']['a:gs']
+  const color_ary = []
+
+  for (let i = 0; i < gsLst.length; i++) {
+    const lo_color = getSolidFill(gsLst[i], clrMap, phClr, warpObj) || '#000000'
+    const pos = getTextByPathList(gsLst[i], ['attrs', 'pos'])
+
+    color_ary[i] = {
+      pos: pos ? pos / 1000 + '%' : '0%',
+      color: lo_color,
+    }
+  }
+  
+  const colors = color_ary.sort((a, b) => parseInt(a.pos) - parseInt(b.pos))
+  return createGradientText(colors)
+}
