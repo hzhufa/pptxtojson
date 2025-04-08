@@ -463,12 +463,37 @@ async function processGroupSpNode(node, warpObj, source) {
   const cy = parseInt(xfrmNode['a:ext']['attrs']['cy']) * RATIO_EMUs_Points
   const chcx = parseInt(xfrmNode['a:chExt']['attrs']['cx']) * RATIO_EMUs_Points
   const chcy = parseInt(xfrmNode['a:chExt']['attrs']['cy']) * RATIO_EMUs_Points
+  const isFlipH = getTextByPathList(xfrmNode, ['attrs', 'flipH']) === '1'
+  const isFlipV = getTextByPathList(xfrmNode, ['attrs', 'flipV']) === '1'
 
   let rotate = getTextByPathList(xfrmNode, ['attrs', 'rot']) || 0
   if (rotate) rotate = angleToDegrees(rotate)
 
+  // 计算当前组合形状的缩放比例
   const ws = cx / chcx
   const hs = cy / chcy
+
+  // 获取父组合形状的累积缩放比例
+  const parentWs = warpObj.groupWs || 1
+  const parentHs = warpObj.groupHs || 1
+
+  // 获取父组的翻转状态
+  const parentFlipH = warpObj.groupFlipH || false
+  const parentFlipV = warpObj.groupFlipV || false
+
+  // 计算当前组的最终翻转状态（考虑父组的影响）
+  const finalFlipH = parentFlipH ? !isFlipH : isFlipH
+  const finalFlipV = parentFlipV ? !isFlipV : isFlipV
+
+  // 更新当前缩放上下文
+  const originalWs = warpObj.groupWs
+  const originalHs = warpObj.groupHs
+  const originalFlipH = warpObj.groupFlipH
+  const originalFlipV = warpObj.groupFlipV
+  warpObj.groupWs = parentWs * ws
+  warpObj.groupHs = parentHs * hs
+  warpObj.groupFlipH = finalFlipH
+  warpObj.groupFlipV = finalFlipV
 
   const elements = []
   for (const nodeKey in node) {
@@ -484,6 +509,12 @@ async function processGroupSpNode(node, warpObj, source) {
     }
   }
 
+  // 恢复原始缩放上下文
+  warpObj.groupWs = originalWs
+  warpObj.groupHs = originalHs
+  warpObj.groupFlipH = originalFlipH
+  warpObj.groupFlipV = originalFlipV
+
   return {
     type: 'group',
     top: y,
@@ -492,12 +523,16 @@ async function processGroupSpNode(node, warpObj, source) {
     height: cy,
     rotate,
     order,
+    isFlipH: finalFlipH,
+    isFlipV: finalFlipV,
     elements: elements.map(element => ({
       ...element,
-      left: (element.left - chx) * ws,
-      top: (element.top - chy) * hs,
-      width: element.width * ws,
-      height: element.height * hs,
+      left: (element.left - chx) * ws * parentWs, // 应用累积缩放
+      top: (element.top - chy) * hs * parentHs, // 应用累积缩放
+      width: element.width * ws * parentWs, // 应用累积缩放
+      height: element.height * hs * parentHs, // 应用累积缩放
+      isFlipH: element.isFlipH !== finalFlipH, // 应用累积翻转
+      isFlipV: element.isFlipV !== finalFlipV, // 应用累积翻转
     }))
   }
 }
