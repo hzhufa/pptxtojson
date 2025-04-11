@@ -580,13 +580,56 @@ export function getSolidFill(solidFill, clrMap, phClr, warpObj) {
   return color
 }
 
-export function createGradientText(colors) {
-  // 获取中间的颜色作为文字颜色
-  const middleIndex = Math.floor(colors.length / 2)
-  return `color: ${colors[middleIndex]['color'] || '#000000'};`
+export function createGradientText(colors, rot = 0, path = 'line') {
+  // // 获取中间的颜色作为文字颜色
+  // const middleIndex = Math.floor(colors.length / 2)
+  // return `color: ${colors[middleIndex]['color'] || '#000000'};`
+
+  // 设置文字渐变色背景
+  const gradientStops = colors
+    .map((stop) => {
+      return `${stop.color} ${stop.pos}`
+    })
+    .join(', ')
+
+  let gradientStyle
+  switch (path) {
+    case 'circle':
+      gradientStyle = `radial-gradient(circle at center, ${gradientStops})`
+      break
+    case 'shape':
+      gradientStyle = `radial-gradient(ellipse at center, ${gradientStops})`
+      break
+    case 'rect':
+      // 矩形渐变，从左上角到右下角
+      gradientStyle = `linear-gradient(45deg, ${gradientStops})`
+      break
+    case 'line':
+    default:
+      // 加90度，兼容pptist
+      const normalizedRot = ((rot + 90) % 360 + 360) % 360
+      gradientStyle = `linear-gradient(${normalizedRot}deg, ${gradientStops})`
+  }
+  const StyleStr = `background: ${gradientStyle};
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  background-clip: text;`
+  return `${StyleStr};`
+  // text-gradient-attrs:${
+  // JSON.stringify({
+  //   colors,
+  //   rot,
+  //   path,
+  //   css: StyleStr
+  // })
+
+  // color: transparent;`
 }
 
-export function getGradFill(solidFill, clrMap, phClr, warpObj) {
+
+
+export function getTextGradientFill(solidFill, clrMap, phClr, warpObj) {
   if (!solidFill || !solidFill['a:gradFill']) return ''
   
   const grdFill = solidFill['a:gradFill']
@@ -604,7 +647,23 @@ export function getGradFill(solidFill, clrMap, phClr, warpObj) {
       color: lo_color,
     }
   }
+
+  const lin = grdFill['a:lin']
+  let rot = 0
+  let pathType = 'line'
+  if (lin) {
+    rot = angleToDegrees(lin['attrs']['ang'])
+  }
+  else {
+    const path = grdFill['a:path']
+    if (path && path['attrs'] && path['attrs']['path']) pathType = path['attrs']['path'] 
+  }
   
   const colors = color_ary.sort((a, b) => parseInt(a.pos) - parseInt(b.pos))
-  return createGradientText(colors)
+  // return {
+  //   rot,
+  //   path: pathType,
+  //   colors: colors.sort((a, b) => parseInt(a.pos) - parseInt(b.pos)),
+  // }
+  return createGradientText(colors, rot, pathType)
 }

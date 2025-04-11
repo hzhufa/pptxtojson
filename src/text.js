@@ -14,7 +14,7 @@ import {
   getFontShadow,
 } from './fontStyle'
 
-import { getFillType, getGradFill } from './fill'
+import { getFillType, getTextGradientFill } from './fill'
 
 export function genTextBody(textBodyNode, spNode, slideLayoutSpNode, type, warpObj) {
   if (!textBodyNode) return ''
@@ -139,7 +139,7 @@ export function genSpanElement(node, pNode, textBodyNode, pFontStyle, slideLayou
   if (rPrNode) {
     const filTyp = getFillType(rPrNode)
     if (filTyp === 'GRADIENT_FILL') {
-      const fontGradientFillStr = getGradFill(rPrNode, pNode, lstStyle, warpObj)  
+      const fontGradientFillStr = getTextGradientFill(rPrNode, pNode, lstStyle, warpObj)  
       styleText += fontGradientFillStr
     }
   }
