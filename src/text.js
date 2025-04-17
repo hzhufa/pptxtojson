@@ -139,7 +139,9 @@ export function genSpanElement(node, pNode, textBodyNode, pFontStyle, slideLayou
   if (rPrNode) {
     const filTyp = getFillType(rPrNode)
     if (filTyp === 'GRADIENT_FILL') {
-      const fontGradientFillStr = getTextGradientFill(rPrNode, pNode, lstStyle, warpObj)  
+      const slideMasterContent = warpObj['slideMasterContent']
+      const clrMap = getTextByPathList(slideMasterContent, ['p:sldMaster', 'p:clrMap', 'attrs'])
+      const fontGradientFillStr = getTextGradientFill(rPrNode, clrMap, lstStyle, warpObj)
       styleText += fontGradientFillStr
     }
   }
